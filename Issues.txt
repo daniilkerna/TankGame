@@ -1,0 +1,7 @@
+Issues Completed:
+
+
+Issues to work on:
+
+1. Add player tank
+2. Add bricks, that constrain tanks movement.
