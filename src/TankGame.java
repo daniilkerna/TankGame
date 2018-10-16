@@ -7,6 +7,7 @@ import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.*;
 
 /**
  * A Simple Game of Bounce.
@@ -45,16 +46,20 @@ public class TankGame extends StateBasedGame {
 	public static final int GAMEOVERSTATE = 2;
 	
 	public static final String BALL_BALLIMG_RSC = "resource/ball.png";
-	public static final String BALL_BROKENIMG_RSC = "resource/brokenball.png";
-	public static final String GAMEOVER_BANNER_RSC = "resource/gameover.png";
-	public static final String STARTUP_BANNER_RSC = "resource/PressSpace.png";
-	public static final String BANG_EXPLOSIONIMG_RSC = "resource/explosion.png";
+	public static final String Tank_Up_RSC = "resource/playerTankUp.png";
+	public static final String Brick_RSC = "resource/Brick.png";
+	public static final String Tank_Left_RSC = "resource/playerTankLeft.png";
+	public static final String Tank_Down_RSC = "resource/playerTankDown.png";
+	public static final String Tank_Right_RSC = "resource/playerTankRight.png";
 	public static final String BANG_EXPLOSIONSND_RSC = "resource/explosion.wav";
+	public static final String BANG_EXPLOSIONIMG_RSC = "resource/explosion.wav";
+	public static final String GAMEOVER_BANNER_RSC = "resource/GameOver.png";
+	public static final String STARTUP_BANNER_RSC = "resource/PressSpace.png";
+
 
 	public final int ScreenWidth;
 	public final int ScreenHeight;
 
-	Ball ball;
 	ArrayList<Bang> explosions;
 
 	/**
@@ -73,6 +78,7 @@ public class TankGame extends StateBasedGame {
 		ScreenWidth = width;
 
 		Entity.setCoarseGrainedCollisionBoundary(Entity.AABB);
+		//Entity.setCoarseGrainedCollisionBoundary(Entity.CIRCLE);
 		explosions = new ArrayList<Bang>(10);
 				
 	}
@@ -93,20 +99,24 @@ public class TankGame extends StateBasedGame {
 
 		// preload all the resources to avoid warnings & minimize latency...
 		ResourceManager.loadImage(BALL_BALLIMG_RSC);
-		ResourceManager.loadImage(BALL_BROKENIMG_RSC);
+		ResourceManager.loadImage(BANG_EXPLOSIONIMG_RSC);
+		ResourceManager.loadImage(Tank_Up_RSC);
+		ResourceManager.loadImage(Tank_Left_RSC);
+		ResourceManager.loadImage(Tank_Down_RSC);
+		ResourceManager.loadImage(Tank_Right_RSC);
 		ResourceManager.loadImage(GAMEOVER_BANNER_RSC);
 		ResourceManager.loadImage(STARTUP_BANNER_RSC);
-		ResourceManager.loadImage(BANG_EXPLOSIONIMG_RSC);
-		
-		ball = new Ball(ScreenWidth / 2, ScreenHeight / 2, .1f, .2f);
+		ResourceManager.loadImage(Brick_RSC);
+
+
 
 	}
 	
 	public static void main(String[] args) {
 		AppGameContainer app;
 		try {
-			app = new AppGameContainer(new TankGame("Bounce!", 800, 600));
-			app.setDisplayMode(800, 600, false);
+			app = new AppGameContainer(new TankGame("Tank City!", 800, 800));
+			app.setDisplayMode(800, 800, false);
 			app.setVSync(true);
 			app.start();
 		} catch (SlickException e) {
@@ -114,6 +124,8 @@ public class TankGame extends StateBasedGame {
 		}
 
 	}
+
+
 
 	
 }

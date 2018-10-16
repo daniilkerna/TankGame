@@ -1,7 +1,11 @@
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Iterator;
 
+import jig.Collision;
 import jig.Vector;
 
+import org.lwjgl.Sys;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
@@ -11,17 +15,14 @@ import org.newdawn.slick.state.StateBasedGame;
 
 
 /**
- * This state is active when the Game is being played. In this state, sound is
- * turned on, the bounce counter begins at 0 and increases until 10 at which
- * point a transition to the Game Over state is initiated. The user can also
- * control the ball using the WAS & D keys.
- * 
- * Transitions From StartUpState
- * 
- * Transitions To GameOverState
+ *
  */
+
 class PlayingState extends BasicGameState {
-	int bounces;
+
+	Tank playerTank;
+	int[][] gamePosition = new int [20][20];
+	ArrayList <Brick> brickArrayList;
 	
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
@@ -30,17 +31,45 @@ class PlayingState extends BasicGameState {
 
 	@Override
 	public void enter(GameContainer container, StateBasedGame game) {
-		bounces = 0;
 		container.setSoundOn(true);
+		TankGame tg = (TankGame) game;
+		playerTank = new Tank(tg.ScreenWidth/2 , tg.ScreenHeight/2);
+		playerTank.setScale(.45f);
+
+		//initialize gameMap
+		for (int i = 0; i < 20; i++) {
+			gamePosition[i][0] = 1;
+			gamePosition[i][19] = 1;
+			gamePosition[0][i] = 1;
+			gamePosition[19][i] = 1;
+		}
+		for (int i = 2; i <= 17 ; i += 3 ) {
+			for(int j = 2 ; j < 18; j++)
+				gamePosition[j][i] = 1;
+		}
+
+
+		//initialize bricks
+		brickArrayList = new ArrayList<Brick>(20);
+		for (int i = 0; i < 20; i++){
+			for ( int j = 0 ; j < 20; j++){
+				if (gamePosition[i][j] == 1){
+					brickArrayList.add(new Brick(j * 40 + 20, i * 40 + 20  ));
+				}
+			}
+		}
+
+		for (Brick b : brickArrayList)
+			b.setScale(.5f);
+
 	}
 	@Override
 	public void render(GameContainer container, StateBasedGame game,
 			Graphics g) throws SlickException {
 		TankGame bg = (TankGame)game;
-		
-		bg.ball.render(g);
-		g.drawString("Bounces: " + bounces, 10, 30);
-		for (Bang b : bg.explosions)
+
+		playerTank.render(g);
+		for (Brick b : brickArrayList)
 			b.render(g);
 	}
 
@@ -49,48 +78,62 @@ class PlayingState extends BasicGameState {
 			int delta) throws SlickException {
 
 		Input input = container.getInput();
-		TankGame bg = (TankGame)game;
-		
-		if (input.isKeyDown(Input.KEY_W)) {
-			bg.ball.setVelocity(bg.ball.getVelocity().add(new Vector(0f, -.001f)));
-		}
-		if (input.isKeyDown(Input.KEY_S)) {
-			bg.ball.setVelocity(bg.ball.getVelocity().add(new Vector(0f, +.001f)));
-		}
-		if (input.isKeyDown(Input.KEY_A)) {
-			bg.ball.setVelocity(bg.ball.getVelocity().add(new Vector(-.001f, 0)));
-		}
-		if (input.isKeyDown(Input.KEY_D)) {
-			bg.ball.setVelocity(bg.ball.getVelocity().add(new Vector(+.001f, 0f)));
-		}
-		// bounce the ball...
-		boolean bounced = false;
-		if (bg.ball.getCoarseGrainedMaxX() > bg.ScreenWidth
-				|| bg.ball.getCoarseGrainedMinX() < 0) {
-			bg.ball.bounce(90);
-			bounced = true;
-		} else if (bg.ball.getCoarseGrainedMaxY() > bg.ScreenHeight
-				|| bg.ball.getCoarseGrainedMinY() < 0) {
-			bg.ball.bounce(0);
-			bounced = true;
-		}
-		if (bounced) {
-			bg.explosions.add(new Bang(bg.ball.getX(), bg.ball.getY()));
-			bounces++;
-		}
-		bg.ball.update(delta);
+		TankGame tg = (TankGame)game;
 
-		// check if there are any finished explosions, if so remove them
-		for (Iterator<Bang> i = bg.explosions.iterator(); i.hasNext();) {
-			if (!i.next().isActive()) {
-				i.remove();
+		boolean notTouchingWall = true;
+
+		for (Brick b : brickArrayList){
+			Collision temp = playerTank.collides(b);
+
+			if (temp != null){	//if tank touching wall, adjust tank position so there is no penetration
+				notTouchingWall = false;
+				//System.out.println(temp.getMinPenetration());
+				Vector penetration = temp.getMinPenetration();
+				playerTank.setX(playerTank.getX() + penetration.getX());
+				playerTank.setY(playerTank.getY() + penetration.getY());
+			}
+			else{
+				//TO DO
+			}
+
+		}
+
+		if (notTouchingWall){
+			controlTank(container, tg);
+		}
+
+
+	}
+
+	//control paddle
+	public void controlTank(GameContainer container , TankGame tg){
+
+		Input input = container.getInput();
+		if (input.isKeyDown(Input.KEY_RIGHT)) {
+			if (playerTank.getCoarseGrainedMaxX() < tg.ScreenWidth) {
+				playerTank.moveTankRight();
+			}
+		}
+		else if (input.isKeyDown(Input.KEY_LEFT)) {
+			if (playerTank.getCoarseGrainedMinX() > 0) {
+				playerTank.moveTankLeft();
+			}
+		}
+		else if (input.isKeyDown(Input.KEY_UP)) {
+			if (playerTank.getCoarseGrainedMinY() > 0) {
+				playerTank.moveTankUp();
+			}
+		}
+		else if (input.isKeyDown(Input.KEY_DOWN)) {
+			if (playerTank.getCoarseGrainedMaxY() < tg.ScreenHeight) {
+				playerTank.moveTankDown();
 			}
 		}
 
-		if (bounces >= 10) {
-			((GameOverState)game.getState(TankGame.GAMEOVERSTATE)).setUserScore(bounces);
-			game.enterState(TankGame.GAMEOVERSTATE);
+		else {
+			//do nothing
 		}
+
 	}
 
 	@Override

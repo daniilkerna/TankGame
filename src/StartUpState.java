@@ -38,7 +38,7 @@ class StartUpState extends BasicGameState {
 		TankGame bg = (TankGame)game;
 
 		g.drawImage(ResourceManager.getImage(TankGame.STARTUP_BANNER_RSC),
-				225, 270);		
+				bg.ScreenWidth/2 - 150, bg.ScreenHeight/2 - 50);
 	}
 
 	@Override
