@@ -2,6 +2,8 @@ import jig.Entity;
 import jig.*;
 
 public class Tank extends Entity {
+    public int numberOfBullets = 0;
+
     private int lives;
     private float velocity = 2.5f;
     private int directionFacing = 0;
@@ -53,5 +55,9 @@ public class Tank extends Entity {
             directionFacing = facing;
             return false;
         }
+    }
+
+    public int getDirectionFacing(){
+        return this.directionFacing;
     }
 }

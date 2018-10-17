@@ -21,8 +21,9 @@ import org.newdawn.slick.state.StateBasedGame;
 class PlayingState extends BasicGameState {
 
 	Tank playerTank;
-	int[][] gamePosition = new int [20][20];
+	int[][] gamePosition = new int [15][15];
 	ArrayList <Brick> brickArrayList;
+	ArrayList <Bullet> bulletArrayList;
 	
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
@@ -33,26 +34,26 @@ class PlayingState extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game) {
 		container.setSoundOn(true);
 		TankGame tg = (TankGame) game;
-		playerTank = new Tank(tg.ScreenWidth/2 , tg.ScreenHeight/2);
+		playerTank = new Tank(tg.ScreenWidth/2, tg.ScreenHeight/2);
 		playerTank.setScale(.45f);
 
 		//initialize gameMap
-		for (int i = 0; i < 20; i++) {
+		for (int i = 0; i < 15; i++) {
 			gamePosition[i][0] = 1;
-			gamePosition[i][19] = 1;
+			gamePosition[i][14] = 1;
 			gamePosition[0][i] = 1;
-			gamePosition[19][i] = 1;
+			gamePosition[14][i] = 1;
 		}
-		for (int i = 2; i <= 17 ; i += 3 ) {
-			for(int j = 2 ; j < 18; j++)
+		for (int i = 2; i <= 13 ; i += 2 ) {
+			for(int j = 2 ; j < 13; j++)
 				gamePosition[j][i] = 1;
 		}
 
 
 		//initialize bricks
 		brickArrayList = new ArrayList<Brick>(20);
-		for (int i = 0; i < 20; i++){
-			for ( int j = 0 ; j < 20; j++){
+		for (int i = 0; i < 15; i++){
+			for ( int j = 0 ; j < 15; j++){
 				if (gamePosition[i][j] == 1){
 					brickArrayList.add(new Brick(j * 40 + 20, i * 40 + 20  ));
 				}
@@ -62,6 +63,8 @@ class PlayingState extends BasicGameState {
 		for (Brick b : brickArrayList)
 			b.setScale(.5f);
 
+		bulletArrayList = new ArrayList<Bullet>(5);
+
 	}
 	@Override
 	public void render(GameContainer container, StateBasedGame game,
@@ -70,6 +73,9 @@ class PlayingState extends BasicGameState {
 
 		playerTank.render(g);
 		for (Brick b : brickArrayList)
+			b.render(g);
+
+		for (Bullet b : bulletArrayList)
 			b.render(g);
 	}
 
@@ -102,7 +108,19 @@ class PlayingState extends BasicGameState {
 			controlTank(container, tg);
 		}
 
+		shootTank(container , tg);
+		//move the bullets
+		for (Bullet b : bulletArrayList) {
+			b.update(delta);
+			b.updateOnScreenStatus(tg.ScreenWidth, tg.ScreenHeight);
+		}
 
+		//clear bullets
+		clearOffScreenBullets();
+		clearDestroyedBricks();
+
+		//check for collisions of bullets and bricks
+		checkBulletsAndBricks();
 	}
 
 	//control paddle
@@ -134,6 +152,59 @@ class PlayingState extends BasicGameState {
 			//do nothing
 		}
 
+	}
+
+	public void shootTank(GameContainer container, TankGame tg){
+		if (playerTank.numberOfBullets >= 2){
+			return;
+		}
+
+		Input input = container.getInput();
+		int direction = playerTank.getDirectionFacing();
+
+		if (input.isKeyPressed(Input.KEY_SPACE)) {
+			bulletArrayList.add(new Bullet(playerTank.getX() , playerTank.getY(), direction));
+			for (Bullet b : bulletArrayList)
+				b.setScale(.7f);
+
+			playerTank.numberOfBullets++;
+		}
+
+	}
+
+	public void clearOffScreenBullets(){
+		Iterator itr = bulletArrayList.iterator();
+		while (itr.hasNext())
+		{
+			Bullet x = (Bullet) itr.next();
+			if (!x.getOnScreen()) {
+				itr.remove();
+				playerTank.numberOfBullets--;
+				System.out.println("Bullet removed");
+			}
+		}
+	}
+
+	public void clearDestroyedBricks(){
+		Iterator itr = brickArrayList.iterator();
+		while (itr.hasNext())
+		{
+			Brick x = (Brick) itr.next();
+			if (x.getIsDestroyed()) {
+				itr.remove();
+			}
+		}
+	}
+
+	public void checkBulletsAndBricks(){
+		for (Bullet bullet : bulletArrayList){
+			for (Brick brick : brickArrayList) {
+				if ( bullet.collides(brick) != null){
+					bullet.setOnScreen(false);
+					brick.setIsDestroyed(true);
+				}
+			}
+		}
 	}
 
 	@Override
