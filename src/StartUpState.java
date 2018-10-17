@@ -48,7 +48,7 @@ class StartUpState extends BasicGameState {
 		Input input = container.getInput();
 		TankGame bg = (TankGame)game;
 
-		if (input.isKeyDown(Input.KEY_SPACE))
+		if (input.isKeyPressed(Input.KEY_SPACE))
 			bg.enterState(TankGame.PLAYINGSTATE);	
 		
 

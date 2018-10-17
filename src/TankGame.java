@@ -55,6 +55,7 @@ public class TankGame extends StateBasedGame {
 	public static final String BANG_EXPLOSIONIMG_RSC = "resource/explosion.wav";
 	public static final String GAMEOVER_BANNER_RSC = "resource/GameOver.png";
 	public static final String STARTUP_BANNER_RSC = "resource/PressSpace.png";
+	public static final String Bullet_RSC = "resource/Bullet.png";
 
 
 	public final int ScreenWidth;
@@ -107,6 +108,7 @@ public class TankGame extends StateBasedGame {
 		ResourceManager.loadImage(GAMEOVER_BANNER_RSC);
 		ResourceManager.loadImage(STARTUP_BANNER_RSC);
 		ResourceManager.loadImage(Brick_RSC);
+		ResourceManager.loadImage(Bullet_RSC);
 
 
 
@@ -115,8 +117,8 @@ public class TankGame extends StateBasedGame {
 	public static void main(String[] args) {
 		AppGameContainer app;
 		try {
-			app = new AppGameContainer(new TankGame("Tank City!", 800, 800));
-			app.setDisplayMode(800, 800, false);
+			app = new AppGameContainer(new TankGame("Tank City!", 600, 600));
+			app.setDisplayMode(600, 600, false);
 			app.setVSync(true);
 			app.start();
 		} catch (SlickException e) {
