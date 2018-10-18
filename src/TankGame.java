@@ -44,13 +44,18 @@ public class TankGame extends StateBasedGame {
 	public static final int STARTUPSTATE = 0;
 	public static final int PLAYINGSTATE = 1;
 	public static final int GAMEOVERSTATE = 2;
-	
-	public static final String BALL_BALLIMG_RSC = "resource/ball.png";
+
 	public static final String Tank_Up_RSC = "resource/playerTankUp.png";
 	public static final String Brick_RSC = "resource/Brick.png";
 	public static final String Tank_Left_RSC = "resource/playerTankLeft.png";
 	public static final String Tank_Down_RSC = "resource/playerTankDown.png";
 	public static final String Tank_Right_RSC = "resource/playerTankRight.png";
+	public static final String Enemy_Tank_Up_RSC = "resource/EnemyTankUp.png";
+	public static final String Enemy_Tank_Left_RSC = "resource/EnemyTankLeft.png";
+	public static final String Enemy_Tank_Down_RSC = "resource/EnemyTankDown.png";
+	public static final String Enemy_Tank_Right_RSC = "resource/EnemyTankRight.png";
+
+
 	public static final String BANG_EXPLOSIONSND_RSC = "resource/explosion.wav";
 	public static final String BANG_EXPLOSIONIMG_RSC = "resource/explosion.wav";
 	public static final String GAMEOVER_BANNER_RSC = "resource/GameOver.png";
@@ -99,12 +104,15 @@ public class TankGame extends StateBasedGame {
 		ResourceManager.loadSound(BANG_EXPLOSIONSND_RSC);	
 
 		// preload all the resources to avoid warnings & minimize latency...
-		ResourceManager.loadImage(BALL_BALLIMG_RSC);
 		ResourceManager.loadImage(BANG_EXPLOSIONIMG_RSC);
 		ResourceManager.loadImage(Tank_Up_RSC);
 		ResourceManager.loadImage(Tank_Left_RSC);
 		ResourceManager.loadImage(Tank_Down_RSC);
 		ResourceManager.loadImage(Tank_Right_RSC);
+		ResourceManager.loadImage(Enemy_Tank_Up_RSC);
+		ResourceManager.loadImage(Enemy_Tank_Left_RSC);
+		ResourceManager.loadImage(Enemy_Tank_Down_RSC);
+		ResourceManager.loadImage(Enemy_Tank_Right_RSC);
 		ResourceManager.loadImage(GAMEOVER_BANNER_RSC);
 		ResourceManager.loadImage(STARTUP_BANNER_RSC);
 		ResourceManager.loadImage(Brick_RSC);
