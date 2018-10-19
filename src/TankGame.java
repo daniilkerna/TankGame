@@ -55,7 +55,7 @@ public class TankGame extends StateBasedGame {
 	public static final String Enemy_Tank_Down_RSC = "resource/EnemyTankDown.png";
 	public static final String Enemy_Tank_Right_RSC = "resource/EnemyTankRight.png";
 	public static final String BANG_EXPLOSIONSND_RSC = "resource/explosion.wav";
-	public static final String BANG_EXPLOSIONIMG_RSC = "resource/explosion.wav";
+	public static final String BANG_EXPLOSIONIMG_RSC = "resource/explosion.png";
 	public static final String GAMEOVER_BANNER_RSC = "resource/GameOver.png";
 	public static final String STARTUP_BANNER_RSC = "resource/PressSpace.png";
 	public static final String Victory_BANNER_RSC = "resource/Victory_banner.png";
@@ -103,7 +103,7 @@ public class TankGame extends StateBasedGame {
 		// and (2) because loading it will load the audio libraries and
 		// unless that is done now, we can't *disable* sound as we
 		// attempt to do in the startUp() method.
-		ResourceManager.loadSound(BANG_EXPLOSIONSND_RSC);	
+		ResourceManager.loadSound(BANG_EXPLOSIONSND_RSC);
 
 		// preload all the resources to avoid warnings & minimize latency...
 		ResourceManager.loadImage(BANG_EXPLOSIONIMG_RSC);
