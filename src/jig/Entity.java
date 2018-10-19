@@ -397,17 +397,15 @@ public class Entity {
 	}
 	
 	/**
-	 * Remove last image from entity
+	 * Remove all image from entity
 	 */
-	public void removeLastImage() {
+	public void removeAllImages() {
 		Iterator<OffsetAnimation> itr = animations.iterator();
 		searchImages:
 		while (itr.hasNext()) {
-			OffsetAnimation a = itr.next();
-			for (int i = 0; i < a.getAnimation().getFrameCount(); ++i) {
-					itr.remove();
-					break searchImages;
-			}
+				//System.out.println("Image Removed");
+				OffsetAnimation a = itr.next();
+				itr.remove();
 		}
 	}
 

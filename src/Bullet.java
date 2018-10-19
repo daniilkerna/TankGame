@@ -3,6 +3,7 @@ import jig.ResourceManager;
 import jig.Vector;
 
 public class Bullet extends Entity {
+    //final float speed = .25f;
     final Vector[] directionShot = {new Vector(0,-.25f),new Vector(-.25f,0), new Vector(0,.25f), new Vector(.25f,0) };
     Vector velocity;
     private boolean onScreen;
