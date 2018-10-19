@@ -10,7 +10,7 @@ public class Tank extends Entity {
 
     public Tank (final float x, final float y){
         super(x , y);
-        this.lives = 300;
+        this.lives = 3;
 
         addImageWithBoundingBox(ResourceManager.getImage(TankGame.Tank_Up_RSC));
 

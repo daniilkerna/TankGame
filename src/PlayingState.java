@@ -26,12 +26,15 @@ class PlayingState extends BasicGameState {
 	public int enemyTanksRemaining = 20;
 	Tank playerTank;
 	Collision temp;
-	int[][] gamePosition = new int [16][16];
+	Base base;
+	int[][] tankPosition = new int [16][16];
+	int[][] mapPosition = new int[30][30];
 	ArrayList <Brick> brickArrayList;
 	ArrayList <Bullet> bulletArrayList;
 	ArrayList <Bullet> enemyBulletArrayList;
 	ArrayList <enemyTank> enemyTankArrayList;
-	
+
+
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
@@ -45,30 +48,46 @@ class PlayingState extends BasicGameState {
 		playerTank.setScale(.45f);
 
 		//initialize gameMap
-		for (int i = 0; i < 15; i++) {
-			gamePosition[i][0] = 1;
-			gamePosition[i][14] = 1;
-			gamePosition[0][i] = 1;
-			gamePosition[14][i] = 1;
+		for (int i = 0; i < 30; i++) {
+			mapPosition[i][0] = 1;
+			mapPosition[i][1] = 1;
+			mapPosition[i][29] = 1;
+			mapPosition[i][28] = 1;
+			mapPosition[0][i] = 1;
+			mapPosition[1][i] = 1;
+			mapPosition[28][i] = 1;
+			mapPosition[29][i] = 1;
 		}
-		for (int i = 2; i <= 13 ; i += 2 ) {
-			for(int j = 2 ; j < 13; j++)
-				gamePosition[j][i] = 1;
+		for (int i = 4; i <= 25 ; i += 4 ) {
+			for(int j = 4 ; j <= 25; j++) {
+				mapPosition[j][i] = 1;
+				mapPosition[j][i+1] = 1;
+			}
 		}
 
+		mapPosition[29][14] = 0;
+		mapPosition[29][15] = 0;
+		mapPosition[28][14] = 0;
+		mapPosition[28][15] = 0;
+		mapPosition[27][14] = 1;
+		mapPosition[27][15] = 1;
+		mapPosition[26][14] = 1;
+		mapPosition[26][15] = 1;
+
+		base = new Base(tg.ScreenWidth/2 , tg.ScreenHeight - 20);
 
 		//initialize bricks
 		brickArrayList = new ArrayList<Brick>(20);
-		for (int i = 0; i < 15; i++){
-			for ( int j = 0 ; j < 15; j++){
-				if (gamePosition[i][j] == 1){
-					brickArrayList.add(new Brick(j * 40 + 20, i * 40 + 20  ));
+		for (int i = 0; i < 30; i++){
+			for ( int j = 0 ; j < 30; j++){
+				if (mapPosition[i][j] == 1){
+					brickArrayList.add(new Brick(j * 20 + 10, i * 20 + 10  ));
 				}
 			}
 		}
 
 		for (Brick b : brickArrayList)
-			b.setScale(.5f);
+			b.setScale(.25f);
 
 		bulletArrayList = new ArrayList<Bullet>(5);
 		enemyBulletArrayList = new ArrayList<Bullet>(5);
@@ -100,6 +119,9 @@ class PlayingState extends BasicGameState {
 
 		for (Bullet b : enemyBulletArrayList)
 			b.render(g);
+
+		if(!base.getIsDestroyed())
+			base.render(g);
 	}
 
 	@Override
@@ -157,7 +179,7 @@ class PlayingState extends BasicGameState {
 
 
 		//update enemy tanks
-		//checkCollisionEnemyTankVsEnemyTank(enemyTankArrayList);
+
 
 		//check for wall collision of the enemies
 		for (enemyTank enemy : enemyTankArrayList){
@@ -174,6 +196,7 @@ class PlayingState extends BasicGameState {
 				}
 			}
 			if (canMove ){
+				calculateGridPosition(tg , delta);
 				controlEnemyTank(enemy , tg);
 			}
 		}
@@ -196,11 +219,12 @@ class PlayingState extends BasicGameState {
 		//create more enemy tanks
 		spawnEnemyTanks();
 
-		calculateGridPosition(tg , delta);
+		checkBaseBullets();
+
 
 
 		//game over check
-		if (playerTank.getLives() == 0 || enemyTankArrayList.size() == 0) {
+		if (playerTank.getLives() == 0 || enemyTankArrayList.size() == 0 || base.getIsDestroyed()) {
 			if (enemyTankArrayList.size() == 0){
 				tg.victory = true;
 			}
@@ -248,20 +272,20 @@ class PlayingState extends BasicGameState {
 
 		if (direction == 0){ 	//go up
 			if (tank.getCoarseGrainedMinY() > 0) {
-				if (row == 0 || gamePosition[row-1][col] != 2)
+				if (row == 0 || tankPosition[row-1][col] != 2)
 					tank.moveTankUp();
 			}
 		}
 		else if (direction == 1){	//go left
 			if (tank.getCoarseGrainedMinX() > 0) {
-				if (col == 0 || gamePosition[row][col-1] != 2)
+				if (col == 0 || tankPosition[row][col-1] != 2)
 					tank.moveTankLeft();
 			}
 		}
 
 		else if (direction == 2){	// go down
 			if (tank.getCoarseGrainedMaxY() < tg.ScreenHeight) {
-				if (row == 14 || gamePosition[row+1][col] != 2)
+				if (row == 14 || tankPosition[row+1][col] != 2)
 				tank.moveTankDown();
 			}
 
@@ -269,7 +293,7 @@ class PlayingState extends BasicGameState {
 
 		else if (direction == 3){	// go right
 			if (tank.getCoarseGrainedMaxX() < tg.ScreenWidth) {
-				if ( col == 14 || gamePosition[row][col + 1] != 2)
+				if ( col == 14 || tankPosition[row][col + 1] != 2)
 				tank.moveTankRight();
 			}
 
@@ -374,7 +398,7 @@ class PlayingState extends BasicGameState {
 		while (itr.hasNext())
 		{
 			enemyTank x = (enemyTank) itr.next();
-			if (x.getLives() == 0) {
+			if (x.getLives() <= 0) {
 				itr.remove();
 			}
 		}
@@ -413,24 +437,40 @@ class PlayingState extends BasicGameState {
 
 		for (int i = 0; i < 15; i++){
 			for(int j = 0; j < 15; j++){
-				gamePosition[i][j] = 0;
+				tankPosition[i][j] = 0;
 			}
 		}
 
 		int col = (int)(playerTank.getX() / (tg.ScreenWidth / 15f)); 		//columns
 		int row = (int) (playerTank.getY() / (tg.ScreenHeight / 15));		//rows
 
-		gamePosition[row][col] = 2;
+		tankPosition[row][col] = 2;
 
 		for (enemyTank tank : enemyTankArrayList){
 			col = (int)(tank.getX() / (tg.ScreenWidth / 15f)); 		//columns
 			row = (int) (tank.getY() / (tg.ScreenHeight / 15));		//rows
 
-			gamePosition[row][col] = 2;
+			tankPosition[row][col] = 2;
 			tank.gridPositionRoW = row;
 			tank.gridPositionColumn = col;
 		}
 
+	}
+
+	public void checkBaseBullets(){
+		for (Bullet bullet : enemyBulletArrayList){
+			if ( bullet.collides(base) != null){
+				bullet.setOnScreen(false);
+				base.setIsDestroyed(true);
+			}
+		}
+
+		for (Bullet bullet : bulletArrayList){
+			if ( bullet.collides(base) != null){
+				bullet.setOnScreen(false);
+				base.setIsDestroyed(true);
+			}
+		}
 	}
 	
 }
