@@ -5,8 +5,14 @@ import java.util.Random;
 public class enemyTank extends Entity {
     public int numberOfBullets = 0;
 
-    private int lives;
     private float velocity = 1.50f;
+    public final Vector[] directionShot = {new Vector(0,-3f),new Vector(-3f,0), new Vector(0,3f), new Vector(3f,0) };
+    public int gridPositionRoW;
+    public int gridPositionColumn;
+
+
+    private int lives;
+
     private int directionFacing = 0;
     private int directionPicture = 0;
     private int countCooldown = 4000;
@@ -64,7 +70,7 @@ public class enemyTank extends Entity {
 
     public void updateDirection(final int delta){
         countCooldown += delta;
-        if (countCooldown > 3000 ) {
+        if (countCooldown > 2000 ) {
             Random random = new Random();
             this.directionFacing = random.nextInt(4);
 
@@ -89,5 +95,17 @@ public class enemyTank extends Entity {
 
     public int getDirectionFacing(){
         return this.directionFacing;
+    }
+
+    public int getDirectionPicture(){
+        return this.directionPicture;
+    }
+
+    public int getLives(){
+        return this.lives;
+    }
+
+    public void decrementLives(){
+        this.lives--;
     }
 }

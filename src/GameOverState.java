@@ -39,13 +39,18 @@ class GameOverState extends BasicGameState {
 	public void render(GameContainer container, StateBasedGame game,
 			Graphics g) throws SlickException {
 
-		TankGame bg = (TankGame)game;
+		TankGame tg = (TankGame)game;
 
-		for (Bang b : bg.explosions)
+		for (Bang b : tg.explosions)
 			b.render(g);
 
-		g.drawImage(ResourceManager.getImage(TankGame.GAMEOVER_BANNER_RSC), 225,
-				270);
+		if (tg.victory){
+			g.drawImage(ResourceManager.getImage(TankGame.Victory_BANNER_RSC), tg.ScreenWidth/2 - 200, tg.ScreenHeight/2 - 50);
+		}
+		else{
+			g.drawImage(ResourceManager.getImage(TankGame.Defeat_BANNER_RSC), tg.ScreenWidth/2 - 200, tg.ScreenHeight/2 - 150);
+		}
+
 
 	}
 

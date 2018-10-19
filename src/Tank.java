@@ -10,7 +10,7 @@ public class Tank extends Entity {
 
     public Tank (final float x, final float y){
         super(x , y);
-        this.lives = 5;
+        this.lives = 300;
 
         addImageWithBoundingBox(ResourceManager.getImage(TankGame.Tank_Up_RSC));
 
@@ -60,4 +60,18 @@ public class Tank extends Entity {
     public int getDirectionFacing(){
         return this.directionFacing;
     }
+
+    public int getLives(){
+        return this.lives;
+    }
+
+    public void decrementLives(){
+        this.lives--;
+    }
+
+
+
+
 }
+
+

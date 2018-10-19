@@ -60,11 +60,15 @@ public class TankGame extends StateBasedGame {
 	public static final String BANG_EXPLOSIONIMG_RSC = "resource/explosion.wav";
 	public static final String GAMEOVER_BANNER_RSC = "resource/GameOver.png";
 	public static final String STARTUP_BANNER_RSC = "resource/PressSpace.png";
+	public static final String Victory_BANNER_RSC = "resource/Victory_banner.png";
+	public static final String Defeat_BANNER_RSC = "resource/defeat.png";
+
 	public static final String Bullet_RSC = "resource/Bullet.png";
 
 
 	public final int ScreenWidth;
 	public final int ScreenHeight;
+	public boolean victory = false;
 
 	ArrayList<Bang> explosions;
 
@@ -115,6 +119,9 @@ public class TankGame extends StateBasedGame {
 		ResourceManager.loadImage(Enemy_Tank_Right_RSC);
 		ResourceManager.loadImage(GAMEOVER_BANNER_RSC);
 		ResourceManager.loadImage(STARTUP_BANNER_RSC);
+		ResourceManager.loadImage(Victory_BANNER_RSC);
+		ResourceManager.loadImage(Defeat_BANNER_RSC);
+
 		ResourceManager.loadImage(Brick_RSC);
 		ResourceManager.loadImage(Bullet_RSC);
 
