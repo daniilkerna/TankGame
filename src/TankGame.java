@@ -54,16 +54,14 @@ public class TankGame extends StateBasedGame {
 	public static final String Enemy_Tank_Left_RSC = "resource/EnemyTankLeft.png";
 	public static final String Enemy_Tank_Down_RSC = "resource/EnemyTankDown.png";
 	public static final String Enemy_Tank_Right_RSC = "resource/EnemyTankRight.png";
-
-
 	public static final String BANG_EXPLOSIONSND_RSC = "resource/explosion.wav";
 	public static final String BANG_EXPLOSIONIMG_RSC = "resource/explosion.wav";
 	public static final String GAMEOVER_BANNER_RSC = "resource/GameOver.png";
 	public static final String STARTUP_BANNER_RSC = "resource/PressSpace.png";
 	public static final String Victory_BANNER_RSC = "resource/Victory_banner.png";
 	public static final String Defeat_BANNER_RSC = "resource/defeat.png";
-
 	public static final String Bullet_RSC = "resource/Bullet.png";
+	public static final String Base_RSC = "resource/Base.png";
 
 
 	public final int ScreenWidth;
@@ -121,9 +119,10 @@ public class TankGame extends StateBasedGame {
 		ResourceManager.loadImage(STARTUP_BANNER_RSC);
 		ResourceManager.loadImage(Victory_BANNER_RSC);
 		ResourceManager.loadImage(Defeat_BANNER_RSC);
-
 		ResourceManager.loadImage(Brick_RSC);
 		ResourceManager.loadImage(Bullet_RSC);
+		ResourceManager.loadImage(Base_RSC);
+
 
 
 
