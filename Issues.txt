@@ -11,4 +11,5 @@ Issues to work on:
 
 4. Add enemy tanks.
 5. Add base for the player
-6. Add a panel that will display the score and life information
+6. Add path finding for the enemies
+7. Add a panel that will display the score and life information

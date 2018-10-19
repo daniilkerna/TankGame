@@ -74,9 +74,21 @@ public class enemyTank extends Entity {
             Random random = new Random();
             this.directionFacing = random.nextInt(4);
 
-            //System.out.println(getDirectionFacing());
-
             countCooldown = 0;
+
+            //check if in a corner
+            if (gridPositionColumn == 0 && gridPositionRoW == 0){
+                this.directionFacing = random.nextInt(2) + 2;
+            }
+            if (gridPositionColumn == 14 && gridPositionRoW == 0){
+                this.directionFacing = random.nextInt(2) + 1;
+            }
+            if (gridPositionColumn == 0 && gridPositionRoW == 14){
+                this.directionFacing = (random.nextInt(2) + 3) % 3;
+            }
+            if (gridPositionColumn == 14 && gridPositionRoW == 14){
+                this.directionFacing = random.nextInt(2) ;
+            }
         }
 
     }

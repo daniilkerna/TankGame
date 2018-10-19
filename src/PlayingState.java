@@ -1,6 +1,7 @@
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Random;
 
 import jig.Collision;
 import jig.Vector;
@@ -20,9 +21,12 @@ import org.newdawn.slick.state.StateBasedGame;
 
 class PlayingState extends BasicGameState {
 
+	int printCooldown = 0;
+
+	public int enemyTanksRemaining = 20;
 	Tank playerTank;
 	Collision temp;
-	int[][] gamePosition = new int [15][15];
+	int[][] gamePosition = new int [16][16];
 	ArrayList <Brick> brickArrayList;
 	ArrayList <Bullet> bulletArrayList;
 	ArrayList <Bullet> enemyBulletArrayList;
@@ -70,8 +74,10 @@ class PlayingState extends BasicGameState {
 		enemyBulletArrayList = new ArrayList<Bullet>(5);
 
 		enemyTankArrayList = new ArrayList<enemyTank>(1);
-		for (int i = 0; i < 5 ; i++)
-			enemyTankArrayList.add(new enemyTank(tg.ScreenWidth/2 , 50));
+		for (int i = 0; i < 5 ; i++) {
+			enemyTankArrayList.add(new enemyTank((i * 100) + 40, 50));
+			enemyTanksRemaining--;
+		}
 
 		for (enemyTank b : enemyTankArrayList)
 			b.setScale(.45f);
@@ -104,6 +110,8 @@ class PlayingState extends BasicGameState {
 		TankGame tg = (TankGame)game;
 
 		boolean notTouchingWall = true;
+
+		calculateGridPosition(tg, delta);
 
 		for (Brick b : brickArrayList){
 			temp = playerTank.collides(b);
@@ -149,6 +157,7 @@ class PlayingState extends BasicGameState {
 
 
 		//update enemy tanks
+		//checkCollisionEnemyTankVsEnemyTank(enemyTankArrayList);
 
 		//check for wall collision of the enemies
 		for (enemyTank enemy : enemyTankArrayList){
@@ -164,15 +173,38 @@ class PlayingState extends BasicGameState {
 					canMove = false;
 				}
 			}
-			if (canMove){
+			if (canMove ){
 				controlEnemyTank(enemy , tg);
 			}
 		}
+
+
 
 		for (enemyTank tank : enemyTankArrayList){
 			tank.updateDirection(delta);
 			if(tank.updateBulletCooldown(delta))
 				shootEnemyTank(tank);
+		}
+
+		//check for enemy bullets hitting the player
+		checkEnemyBulletsAndPlayer(enemyBulletArrayList);
+		checkEnemyTanksAndPlayerBullet(enemyTankArrayList);
+
+		//clear destroyed tanks
+		clearDestroyedTanks(enemyTankArrayList);
+
+		//create more enemy tanks
+		spawnEnemyTanks();
+
+		calculateGridPosition(tg , delta);
+
+
+		//game over check
+		if (playerTank.getLives() == 0 || enemyTankArrayList.size() == 0) {
+			if (enemyTankArrayList.size() == 0){
+				tg.victory = true;
+			}
+			game.enterState(TankGame.GAMEOVERSTATE);
 		}
 	}
 
@@ -209,21 +241,27 @@ class PlayingState extends BasicGameState {
 
 	//control enemy tank
 	public void controlEnemyTank(enemyTank tank, TankGame tg){
+
 		int direction = tank.getDirectionFacing();
+		int row = tank.gridPositionRoW;
+		int col = tank.gridPositionColumn;
 
 		if (direction == 0){ 	//go up
 			if (tank.getCoarseGrainedMinY() > 0) {
-				tank.moveTankUp();
+				if (row == 0 || gamePosition[row-1][col] != 2)
+					tank.moveTankUp();
 			}
 		}
 		else if (direction == 1){	//go left
 			if (tank.getCoarseGrainedMinX() > 0) {
-				tank.moveTankLeft();
+				if (col == 0 || gamePosition[row][col-1] != 2)
+					tank.moveTankLeft();
 			}
 		}
 
 		else if (direction == 2){	// go down
 			if (tank.getCoarseGrainedMaxY() < tg.ScreenHeight) {
+				if (row == 14 || gamePosition[row+1][col] != 2)
 				tank.moveTankDown();
 			}
 
@@ -231,6 +269,7 @@ class PlayingState extends BasicGameState {
 
 		else if (direction == 3){	// go right
 			if (tank.getCoarseGrainedMaxX() < tg.ScreenWidth) {
+				if ( col == 14 || gamePosition[row][col + 1] != 2)
 				tank.moveTankRight();
 			}
 
@@ -263,7 +302,7 @@ class PlayingState extends BasicGameState {
 
 	//shoot enemy tank
 	public void shootEnemyTank(enemyTank enemy){
-		int direction = enemy.getDirectionFacing();
+		int direction = enemy.getDirectionPicture();
 
 		enemyBulletArrayList.add(new Bullet(enemy.getX() , enemy.getY(), direction));
 
@@ -310,9 +349,88 @@ class PlayingState extends BasicGameState {
 		}
 	}
 
+	public void checkEnemyBulletsAndPlayer(ArrayList <Bullet> list){
+		for (Bullet bullet : list){
+			if ( bullet.collides(playerTank) != null){
+				bullet.setOnScreen(false);
+				playerTank.decrementLives();
+			}
+		}
+	}
+
+	public void checkEnemyTanksAndPlayerBullet(ArrayList <enemyTank> list ){
+		for (enemyTank tank : list){
+			for(Bullet bullet : bulletArrayList){
+				if ( bullet.collides(tank) != null){
+					bullet.setOnScreen(false);
+					tank.decrementLives();
+				}
+			}
+		}
+	}
+
+	public void clearDestroyedTanks(ArrayList <enemyTank> list){
+		Iterator itr = list.iterator();
+		while (itr.hasNext())
+		{
+			enemyTank x = (enemyTank) itr.next();
+			if (x.getLives() == 0) {
+				itr.remove();
+			}
+		}
+
+	}
+
+
+
 	@Override
 	public int getID() {
 		return TankGame.PLAYINGSTATE;
+	}
+
+	//return random int [0,maximum]
+	public int getRandomInt(int maximum){
+		Random random = new Random();
+		int number = random.nextInt(maximum);
+
+		return number;
+	}
+
+	public void spawnEnemyTanks(){
+		if (enemyTanksRemaining == 0 || enemyTankArrayList.size() >= 5){
+			return;
+		}
+		else{
+			int location = getRandomInt(3);
+			enemyTankArrayList.add(new enemyTank((location * 260) + 40, 50));
+			enemyTanksRemaining--;
+			for (enemyTank b : enemyTankArrayList)
+				b.setScale(.45f);
+		}
+	}
+
+	public void calculateGridPosition(TankGame tg , final int delta){
+
+		for (int i = 0; i < 15; i++){
+			for(int j = 0; j < 15; j++){
+				gamePosition[i][j] = 0;
+			}
+		}
+
+		int col = (int)(playerTank.getX() / (tg.ScreenWidth / 15f)); 		//columns
+		int row = (int) (playerTank.getY() / (tg.ScreenHeight / 15));		//rows
+
+		gamePosition[row][col] = 2;
+
+		for (enemyTank tank : enemyTankArrayList){
+			col = (int)(tank.getX() / (tg.ScreenWidth / 15f)); 		//columns
+			row = (int) (tank.getY() / (tg.ScreenHeight / 15));		//rows
+
+			gamePosition[row][col] = 2;
+			tank.gridPositionRoW = row;
+			tank.gridPositionColumn = col;
+		}
+
 	}
 	
 }
