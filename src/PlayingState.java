@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.Random;
 
 import jig.Collision;
+import jig.Entity;
 import jig.Vector;
 
 import org.lwjgl.Sys;
@@ -27,9 +28,24 @@ class PlayingState extends BasicGameState {
 	Tank playerTank;
 	Collision temp;
 	Base base;
-	int[][] tankPosition = new int [16][16];
-	int[][] mapPosition = new int[30][30];
-	ArrayList <Brick> brickArrayList;
+	int[][] tankPosition = new int [15][15];
+	int[][] mapPosition = { {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,},
+							{1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,},
+							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
+							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
+							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
+							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
+							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
+							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
+							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
+							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
+							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
+							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
+							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
+							{1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,},
+							{1,1,1,1,1,1,1,3,1,1,1,1,1,1,1,},
+						};
+	ArrayList <Entity> brickArrayList;
 	ArrayList <Bullet> bulletArrayList;
 	ArrayList <Bullet> enemyBulletArrayList;
 	ArrayList <enemyTank> enemyTankArrayList;
@@ -44,50 +60,24 @@ class PlayingState extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game) {
 		container.setSoundOn(true);
 		TankGame tg = (TankGame) game;
-		playerTank = new Tank(tg.ScreenWidth / 2, tg.ScreenHeight/2);
-		playerTank.setScale(.45f);
+		playerTank = new Tank(tg.ScreenWidth / 2 - 40, tg.ScreenHeight - 60);
 
-		//initialize gameMap
-		for (int i = 0; i < 30; i++) {
-			mapPosition[i][0] = 1;
-			mapPosition[i][1] = 1;
-			mapPosition[i][29] = 1;
-			mapPosition[i][28] = 1;
-			mapPosition[0][i] = 1;
-			mapPosition[1][i] = 1;
-			mapPosition[28][i] = 1;
-			mapPosition[29][i] = 1;
-		}
-		for (int i = 4; i <= 25 ; i += 4 ) {
-			for(int j = 4 ; j <= 25; j++) {
-				mapPosition[j][i] = 1;
-				mapPosition[j][i+1] = 1;
-			}
-		}
 
-		mapPosition[29][14] = 0;
-		mapPosition[29][15] = 0;
-		mapPosition[28][14] = 0;
-		mapPosition[28][15] = 0;
-		mapPosition[27][14] = 1;
-		mapPosition[27][15] = 1;
-		mapPosition[26][14] = 1;
-		mapPosition[26][15] = 1;
-
-		base = new Base(tg.ScreenWidth/2 , tg.ScreenHeight - 20);
-
-		//initialize bricks
-		brickArrayList = new ArrayList<Brick>(20);
-		for (int i = 0; i < 30; i++){
-			for ( int j = 0 ; j < 30; j++){
+		//initialize the map
+		brickArrayList = new ArrayList <Entity>(20);
+		for (int i = 0; i < 15; i++){
+			for ( int j = 0 ; j < 15; j++){
 				if (mapPosition[i][j] == 1){
-					brickArrayList.add(new Brick(j * 20 + 10, i * 20 + 10  ));
+					brickArrayList.add(new Brick(j * 40 + 20, i * 40 + 20  ));
+				}
+				if (mapPosition[i][j] == 3){
+					base = new Base(j * 40 + 20, i * 40 + 20  );
 				}
 			}
 		}
 
-		for (Brick b : brickArrayList)
-			b.setScale(.25f);
+		for (Entity b : brickArrayList)
+			b.setScale(.5f);
 
 		bulletArrayList = new ArrayList<Bullet>(5);
 		enemyBulletArrayList = new ArrayList<Bullet>(5);
@@ -98,8 +88,6 @@ class PlayingState extends BasicGameState {
 			enemyTanksRemaining--;
 		}
 
-		for (enemyTank b : enemyTankArrayList)
-			b.setScale(.45f);
 
 	}
 	@Override
@@ -108,7 +96,7 @@ class PlayingState extends BasicGameState {
 		TankGame bg = (TankGame)game;
 
 		playerTank.render(g);
-		for (Brick b : brickArrayList)
+		for (Entity b : brickArrayList)
 			b.render(g);
 
 		for (Bullet b : bulletArrayList)
@@ -135,7 +123,7 @@ class PlayingState extends BasicGameState {
 
 		calculateGridPosition(tg, delta);
 
-		for (Brick b : brickArrayList){
+		for (Entity b : brickArrayList){
 			temp = playerTank.collides(b);
 
 			//check for wall collision of the player
@@ -149,7 +137,16 @@ class PlayingState extends BasicGameState {
 			else{
 				//TO DO
 			}
+		}
 
+		//check collision with the base
+		temp = playerTank.collides(base);
+		if (temp != null){
+			notTouchingWall = false;
+			//System.out.println(temp.getMinPenetration());
+			Vector penetration = temp.getMinPenetration();
+			playerTank.setX(playerTank.getX() + penetration.getX());
+			playerTank.setY(playerTank.getY() + penetration.getY());
 		}
 
 		if (notTouchingWall){
@@ -184,7 +181,7 @@ class PlayingState extends BasicGameState {
 		//check for wall collision of the enemies
 		for (enemyTank enemy : enemyTankArrayList){
 			boolean canMove = true;
-			for (Brick b : brickArrayList) {
+			for (Entity b : brickArrayList) {
 				temp = enemy.collides(b);
 
 				if (temp != null) {    //if tank touching wall, adjust tank position so there is no penetration
@@ -194,6 +191,14 @@ class PlayingState extends BasicGameState {
 
 					canMove = false;
 				}
+			}
+
+			temp = enemy.collides(base);
+			if (temp != null){		//check for enemy collision with base
+				canMove = false;
+				Vector penetration = temp.getMinPenetration();
+				enemy.setX(enemy.getX() + penetration.getX());
+				enemy.setY(enemy.getY() + penetration.getY());
 			}
 			if (canMove ){
 				calculateGridPosition(tg , delta);
@@ -364,10 +369,10 @@ class PlayingState extends BasicGameState {
 	//check for collisions of bullets and bricks
 	public void checkBulletsAndBricks(ArrayList <Bullet> list){
 		for (Bullet bullet : list){
-			for (Brick brick : brickArrayList) {
+			for (Entity brick : brickArrayList) {
 				if ( bullet.collides(brick) != null){
 					bullet.setOnScreen(false);
-					brick.setIsDestroyed(true);
+					((Brick)brick).setIsDestroyed(true);
 				}
 			}
 		}
@@ -421,15 +426,14 @@ class PlayingState extends BasicGameState {
 	}
 
 	public void spawnEnemyTanks(){
-		if (enemyTanksRemaining == 0 || enemyTankArrayList.size() >= 5){
+		if (enemyTanksRemaining == 0 || enemyTankArrayList.size() >= 4){
 			return;
 		}
 		else{
 			int location = getRandomInt(3);
 			enemyTankArrayList.add(new enemyTank((location * 260) + 40, 50));
 			enemyTanksRemaining--;
-			for (enemyTank b : enemyTankArrayList)
-				b.setScale(.45f);
+
 		}
 	}
 

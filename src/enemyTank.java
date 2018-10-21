@@ -23,7 +23,9 @@ public class enemyTank extends Entity {
         super(x , y);
         this.lives = 1;
 
+
         addImageWithBoundingBox(ResourceManager.getImage(TankGame.Enemy_Tank_Up_RSC));
+        scale(.45f);
 
 
     }
@@ -70,7 +72,7 @@ public class enemyTank extends Entity {
 
     public void updateDirection(final int delta){
         countCooldown += delta;
-        if (countCooldown > 2000 ) {
+        if (countCooldown > 3000 ) {
             Random random = new Random();
             this.directionFacing = random.nextInt(4);
 

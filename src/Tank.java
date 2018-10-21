@@ -13,6 +13,7 @@ public class Tank extends Entity {
         this.lives = 3;
 
         addImageWithBoundingBox(ResourceManager.getImage(TankGame.Tank_Up_RSC));
+        scale(.45f);
 
 
     }
