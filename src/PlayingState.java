@@ -129,10 +129,7 @@ class PlayingState extends BasicGameState {
 			//check for wall collision of the player
 			if (temp != null){	//if tank touching wall, adjust tank position so there is no penetration
 				notTouchingWall = false;
-				//System.out.println(temp.getMinPenetration());
-				Vector penetration = temp.getMinPenetration();
-				playerTank.setX(playerTank.getX() + penetration.getX());
-				playerTank.setY(playerTank.getY() + penetration.getY());
+				moveEntityByMinPenetrationVector(playerTank , temp);
 			}
 			else{
 				//TO DO
@@ -143,10 +140,16 @@ class PlayingState extends BasicGameState {
 		temp = playerTank.collides(base);
 		if (temp != null){
 			notTouchingWall = false;
-			//System.out.println(temp.getMinPenetration());
-			Vector penetration = temp.getMinPenetration();
-			playerTank.setX(playerTank.getX() + penetration.getX());
-			playerTank.setY(playerTank.getY() + penetration.getY());
+			moveEntityByMinPenetrationVector(playerTank , temp);
+		}
+
+		//check for collision with enemy tanks
+		for (enemyTank enemy : enemyTankArrayList){
+			temp = playerTank.collides(enemy);
+			if (temp != null){
+				notTouchingWall = false;
+				moveEntityByMinPenetrationVector(playerTank , temp);
+			}
 		}
 
 		if (notTouchingWall){
@@ -185,10 +188,7 @@ class PlayingState extends BasicGameState {
 				temp = enemy.collides(b);
 
 				if (temp != null) {    //if tank touching wall, adjust tank position so there is no penetration
-					Vector penetration = temp.getMinPenetration();
-					enemy.setX(enemy.getX() + penetration.getX());
-					enemy.setY(enemy.getY() + penetration.getY());
-
+					moveEntityByMinPenetrationVector(enemy , temp);
 					canMove = false;
 				}
 			}
@@ -196,9 +196,7 @@ class PlayingState extends BasicGameState {
 			temp = enemy.collides(base);
 			if (temp != null){		//check for enemy collision with base
 				canMove = false;
-				Vector penetration = temp.getMinPenetration();
-				enemy.setX(enemy.getX() + penetration.getX());
-				enemy.setY(enemy.getY() + penetration.getY());
+				moveEntityByMinPenetrationVector(enemy , temp);
 			}
 			if (canMove ){
 				calculateGridPosition(tg , delta);
@@ -408,6 +406,12 @@ class PlayingState extends BasicGameState {
 			}
 		}
 
+	}
+
+	public void moveEntityByMinPenetrationVector(Entity tank , Collision collision){
+		Vector penetration = collision.getMinPenetration();
+		tank.setX(tank.getX() + penetration.getX());
+		tank.setY(tank.getY() + penetration.getY());
 	}
 
 
