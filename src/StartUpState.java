@@ -38,7 +38,7 @@ class StartUpState extends BasicGameState {
 		TankGame bg = (TankGame)game;
 
 		g.drawImage(ResourceManager.getImage(TankGame.STARTUP_BANNER_RSC),
-				225, 270);		
+				bg.ScreenWidth/2 - 150, bg.ScreenHeight/2 - 50);
 	}
 
 	@Override
@@ -48,7 +48,7 @@ class StartUpState extends BasicGameState {
 		Input input = container.getInput();
 		TankGame bg = (TankGame)game;
 
-		if (input.isKeyDown(Input.KEY_SPACE))
+		if (input.isKeyPressed(Input.KEY_SPACE))
 			bg.enterState(TankGame.PLAYINGSTATE);	
 		
 
