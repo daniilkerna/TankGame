@@ -25,13 +25,14 @@ class PlayingState extends BasicGameState {
 
 	int printCooldown = 0;
 
-	public int enemyTanksRemaining = 20;
+	public int enemyTanksRemaining = 10;
 	Tank playerTank;
 	Collision temp;
 	Base base;
 
 	int[][] mapPosition = { {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,},
-							{1,0,2,0,0,0,0,0,0,0,0,0,0,0,1,},
+							{1,0,2,0,0,0,2,0,0,0,0,0,0,2,1,},
+							{1,0,1,0,1,0,1,11,1,0,1,0,1,0,1,},
 							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
 							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
 							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
@@ -42,8 +43,7 @@ class PlayingState extends BasicGameState {
 							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
 							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
 							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
-							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
-							{1,0,0,0,0,0,0,11,0,0,0,0,0,0,1,},
+							{1,0,0,0,0,0,1,1,1,0,0,0,0,0,1,},
 							{1,1,1,1,1,1,1,3,1,1,1,1,1,1,1,},
 						};
 	ArrayList <Entity> brickArrayList;
@@ -61,15 +61,22 @@ class PlayingState extends BasicGameState {
 	public void enter(GameContainer container, StateBasedGame game) {
 		container.setSoundOn(true);
 		TankGame tg = (TankGame) game;
-		playerTank = new Tank(tg.ScreenWidth / 2 - 40, tg.ScreenHeight - 60);
+		enemyTanksRemaining = 20;
+
+		playerTank = new Tank(tg.ScreenWidth / 2 - 80, tg.ScreenHeight - 60);
+
+
 
         enemyTankArrayList = new ArrayList<enemyTank>(1);
         bulletArrayList = new ArrayList<Bullet>(5);
         enemyBulletArrayList = new ArrayList<Bullet>(5);
+		brickArrayList = new ArrayList <Entity>(20);
+
+		clearLists();
 
 
 		//initialize the map
-		brickArrayList = new ArrayList <Entity>(20);
+
 		for (int i = 0; i < 15; i++){
 			for ( int j = 0 ; j < 15; j++){
 				if (mapPosition[i][j] == 1){
@@ -134,6 +141,8 @@ class PlayingState extends BasicGameState {
 
 		Input input = container.getInput();
 		TankGame tg = (TankGame)game;
+
+		tg.controlLevel();
 
 		boolean notTouchingWall = true;
 
@@ -228,6 +237,7 @@ class PlayingState extends BasicGameState {
 		//check for enemy bullets hitting the player
 		checkEnemyBulletsAndPlayer(enemyBulletArrayList);
 		checkEnemyTanksAndPlayerBullet(enemyTankArrayList);
+		checkBulletVsBullet();
 
 		//clear destroyed tanks
 		clearDestroyedTanks(enemyTankArrayList);
@@ -242,9 +252,11 @@ class PlayingState extends BasicGameState {
 		//game over check
 		if (playerTank.getLives() == 0 || enemyTankArrayList.size() == 0 || base.getIsDestroyed()) {
 			if (enemyTankArrayList.size() == 0){
-				tg.victory = true;
+				game.enterState(TankGame.PLAYINGSTATE2);
 			}
-			game.enterState(TankGame.GAMEOVERSTATE);
+			else {
+				game.enterState(TankGame.GAMEOVERSTATE);
+			}
 		}
 	}
 
@@ -492,7 +504,7 @@ class PlayingState extends BasicGameState {
 	//calculate the path to base, using aStar
 	public void calculatePathTowardsBase(enemyTank tank){
 		tank.pathTowardsBase.clear();
-		int stoneMultiplyer = 10;
+		int stoneMultiplyer = 3;
 		GridBlock destination;
 
 		if (tank.target == 0) {
@@ -614,6 +626,25 @@ class PlayingState extends BasicGameState {
 
 			for (enemyTank enemy : enemyTankArrayList){
 				calculatePathTowardsBase(enemy);
+			}
+		}
+	}
+
+	public void clearLists(){
+		enemyTankArrayList.clear();
+		enemyBulletArrayList.clear();
+		brickArrayList.clear();
+
+	}
+
+	public void checkBulletVsBullet(){
+		for(Bullet bullet : enemyBulletArrayList){
+			for (Bullet bullet1 : bulletArrayList){
+				Collision temp = bullet.collides(bullet1);
+				if (temp != null){
+					bullet.setOnScreen(false);
+					bullet1.setOnScreen(false);
+				}
 			}
 		}
 	}

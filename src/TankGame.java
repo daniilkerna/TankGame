@@ -26,7 +26,8 @@ public class TankGame extends StateBasedGame {
 	
 	public static final int STARTUPSTATE = 0;
 	public static final int PLAYINGSTATE = 1;
-	public static final int GAMEOVERSTATE = 2;
+	public static final int PLAYINGSTATE2 = 2;
+	public static final int GAMEOVERSTATE = 3;
 
 	public static final String Tank_Up_RSC = "resource/playerTankUp.png";
 	public static final String Brick_RSC = "resource/Brick.png";
@@ -81,6 +82,7 @@ public class TankGame extends StateBasedGame {
 	public void initStatesList(GameContainer container) throws SlickException {
 		addState(new StartUpState());
 		addState(new GameOverState());
+		addState(new PlayingState2());
 		addState(new PlayingState());
 		
 		// the sound resource takes a particularly long time to load,
@@ -127,6 +129,16 @@ public class TankGame extends StateBasedGame {
 			e.printStackTrace();
 		}
 
+	}
+
+	public void controlLevel(){
+		Input input = this.getContainer().getInput();
+		if (input.isKeyDown(Input.KEY_1)){
+			enterState(1);
+		}
+		if (input.isKeyDown(Input.KEY_2)){
+			enterState(2);
+		}
 	}
 
 
