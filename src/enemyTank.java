@@ -19,7 +19,7 @@ public class enemyTank extends Entity {
 
     private int directionFacing = 0;
     private int directionPicture = 0;
-    private int countCooldown = 4000;
+    private int movingCooldown = 350;
     private int bulletCooldown = 1000;
     public int target;
 
@@ -36,7 +36,7 @@ public class enemyTank extends Entity {
 
 
         this.target = getRandomInt(2);
-        System.out.println("target number: " + this.target);
+        //System.out.println("target number: " + this.target);
 
     }
 
@@ -84,8 +84,14 @@ public class enemyTank extends Entity {
         if (pathTowardsBase.size() == 0){
             return;
         }
+
         if (GridBlock.equal(gridPosition,pathTowardsBase.get(0) )){
+            movingCooldown -= delta;
+            if (movingCooldown > 0){
+                return;
+            }
             pathTowardsBase.remove(0);
+            movingCooldown = 350;
             //System.out.println("Achievhed location row: " + gridPosition.row + "column : " + gridPosition.column);
         }
         if (pathTowardsBase.size() == 0){
