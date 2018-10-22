@@ -5,14 +5,16 @@ public class Tank extends Entity {
     public int numberOfBullets = 0;
 
     private int lives;
-    private float velocity = 2.5f;
+    private float velocity = 1.75f;
     private int directionFacing = 0;
+    public GridBlock gridPosition = new GridBlock(0 ,0 );
 
     public Tank (final float x, final float y){
         super(x , y);
         this.lives = 3;
 
         addImageWithBoundingBox(ResourceManager.getImage(TankGame.Tank_Up_RSC));
+        scale(.45f);
 
 
     }
