@@ -6,6 +6,9 @@ import org.newdawn.slick.Graphics;
 public class Base extends Entity {
     private boolean isDestroyed = false;
 
+    public int gridPositionRoW;
+    public int gridPositionColumn;
+
     public Base (final float x, final float y){
         super( x , y);
 

@@ -1,6 +1,7 @@
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.PriorityQueue;
 import java.util.Random;
 
 import jig.Collision;
@@ -28,9 +29,9 @@ class PlayingState extends BasicGameState {
 	Tank playerTank;
 	Collision temp;
 	Base base;
-	int[][] tankPosition = new int [15][15];
+
 	int[][] mapPosition = { {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,},
-							{1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,},
+							{1,0,2,0,0,0,0,0,0,0,0,0,0,0,1,},
 							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
 							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
 							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
@@ -42,7 +43,7 @@ class PlayingState extends BasicGameState {
 							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
 							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
 							{1,0,1,0,1,0,1,1,1,0,1,0,1,0,1,},
-							{1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,},
+							{1,0,0,0,0,0,0,11,0,0,0,0,0,0,1,},
 							{1,1,1,1,1,1,1,3,1,1,1,1,1,1,1,},
 						};
 	ArrayList <Entity> brickArrayList;
@@ -62,38 +63,49 @@ class PlayingState extends BasicGameState {
 		TankGame tg = (TankGame) game;
 		playerTank = new Tank(tg.ScreenWidth / 2 - 40, tg.ScreenHeight - 60);
 
+        enemyTankArrayList = new ArrayList<enemyTank>(1);
+        bulletArrayList = new ArrayList<Bullet>(5);
+        enemyBulletArrayList = new ArrayList<Bullet>(5);
+
 
 		//initialize the map
 		brickArrayList = new ArrayList <Entity>(20);
 		for (int i = 0; i < 15; i++){
 			for ( int j = 0 ; j < 15; j++){
 				if (mapPosition[i][j] == 1){
-					brickArrayList.add(new Brick(j * 40 + 20, i * 40 + 20  ));
+					brickArrayList.add(new Brick(j * 40 + 20, i * 40 + 20, i , j  ));
 				}
-				if (mapPosition[i][j] == 3){
+				else if (mapPosition[i][j] == 11){
+					brickArrayList.add(new Stone(j * 40 + 20, i * 40 + 20, i , j  ));
+				}
+				else if (mapPosition[i][j] == 3){
 					base = new Base(j * 40 + 20, i * 40 + 20  );
 				}
+                else if (mapPosition[i][j] == 2){
+                    enemyTankArrayList.add(new enemyTank(j * 40 + 20, i * 40 + 20));
+                    enemyTanksRemaining--;
+                }
 			}
 		}
 
 		for (Entity b : brickArrayList)
 			b.setScale(.5f);
 
-		bulletArrayList = new ArrayList<Bullet>(5);
-		enemyBulletArrayList = new ArrayList<Bullet>(5);
+		//update enemy tanks
+		calculateGridPosition(tg);
 
-		enemyTankArrayList = new ArrayList<enemyTank>(1);
-		for (int i = 0; i < 5 ; i++) {
-			enemyTankArrayList.add(new enemyTank((i * 100) + 40, 50));
-			enemyTanksRemaining--;
+		for(enemyTank enemy : enemyTankArrayList){
+			calculatePathTowardsBase(enemy);
 		}
+
+
 
 
 	}
 	@Override
 	public void render(GameContainer container, StateBasedGame game,
 			Graphics g) throws SlickException {
-		TankGame bg = (TankGame)game;
+		TankGame tg = (TankGame)game;
 
 		playerTank.render(g);
 		for (Entity b : brickArrayList)
@@ -110,6 +122,10 @@ class PlayingState extends BasicGameState {
 
 		if(!base.getIsDestroyed())
 			base.render(g);
+
+		g.drawString("Lives : " + playerTank.getLives() , 0 , 0);
+		g.drawString("Enemies : " + (enemyTankArrayList.size() + enemyTanksRemaining) , 0 , 20);
+
 	}
 
 	@Override
@@ -121,7 +137,6 @@ class PlayingState extends BasicGameState {
 
 		boolean notTouchingWall = true;
 
-		calculateGridPosition(tg, delta);
 
 		for (Entity b : brickArrayList){
 			temp = playerTank.collides(b);
@@ -177,9 +192,7 @@ class PlayingState extends BasicGameState {
 		checkBulletsAndBricks(bulletArrayList);
 		checkBulletsAndBricks(enemyBulletArrayList);
 
-
-		//update enemy tanks
-
+		updatePathForEnemies(delta);
 
 		//check for wall collision of the enemies
 		for (enemyTank enemy : enemyTankArrayList){
@@ -199,7 +212,7 @@ class PlayingState extends BasicGameState {
 				moveEntityByMinPenetrationVector(enemy , temp);
 			}
 			if (canMove ){
-				calculateGridPosition(tg , delta);
+				calculateGridPosition(tg);
 				controlEnemyTank(enemy , tg);
 			}
 		}
@@ -270,25 +283,25 @@ class PlayingState extends BasicGameState {
 	public void controlEnemyTank(enemyTank tank, TankGame tg){
 
 		int direction = tank.getDirectionFacing();
-		int row = tank.gridPositionRoW;
-		int col = tank.gridPositionColumn;
+		int row = tank.gridPosition.row;
+		int col = tank.gridPosition.column;
 
 		if (direction == 0){ 	//go up
 			if (tank.getCoarseGrainedMinY() > 0) {
-				if (row == 0 || tankPosition[row-1][col] != 2)
+				if (row == 0 || mapPosition[row-1][col] != 2)
 					tank.moveTankUp();
 			}
 		}
 		else if (direction == 1){	//go left
 			if (tank.getCoarseGrainedMinX() > 0) {
-				if (col == 0 || tankPosition[row][col-1] != 2)
+				if (col == 0 || mapPosition[row][col-1] != 2)
 					tank.moveTankLeft();
 			}
 		}
 
 		else if (direction == 2){	// go down
 			if (tank.getCoarseGrainedMaxY() < tg.ScreenHeight) {
-				if (row == 14 || tankPosition[row+1][col] != 2)
+				if (row == 14 || mapPosition[row+1][col] != 2)
 				tank.moveTankDown();
 			}
 
@@ -296,7 +309,7 @@ class PlayingState extends BasicGameState {
 
 		else if (direction == 3){	// go right
 			if (tank.getCoarseGrainedMaxX() < tg.ScreenWidth) {
-				if ( col == 14 || tankPosition[row][col + 1] != 2)
+				if ( col == 14 || mapPosition[row][col + 1] != 2)
 				tank.moveTankRight();
 			}
 
@@ -359,6 +372,7 @@ class PlayingState extends BasicGameState {
 		{
 			Brick x = (Brick) itr.next();
 			if (x.getIsDestroyed()) {
+				mapPosition[x.gridPosition.row][x.gridPosition.column] = 0;
 				itr.remove();
 			}
 		}
@@ -409,9 +423,13 @@ class PlayingState extends BasicGameState {
 	}
 
 	public void moveEntityByMinPenetrationVector(Entity tank , Collision collision){
-		Vector penetration = collision.getMinPenetration();
-		tank.setX(tank.getX() + penetration.getX());
-		tank.setY(tank.getY() + penetration.getY());
+		try {
+			Vector penetration = collision.getMinPenetration();
+			tank.setX(tank.getX() + penetration.getX());
+			tank.setY(tank.getY() + penetration.getY());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 
@@ -436,33 +454,135 @@ class PlayingState extends BasicGameState {
 		else{
 			int location = getRandomInt(3);
 			enemyTankArrayList.add(new enemyTank((location * 260) + 40, 50));
+			enemyTank tank = enemyTankArrayList.get(enemyTankArrayList.size() - 1);
+			calculatePathTowardsBase(tank);
 			enemyTanksRemaining--;
 
 		}
 	}
 
-	public void calculateGridPosition(TankGame tg , final int delta){
+	public void calculateGridPosition(TankGame tg){
 
 		for (int i = 0; i < 15; i++){
 			for(int j = 0; j < 15; j++){
-				tankPosition[i][j] = 0;
+				if (mapPosition[i][j] == 2){		//reset all the tank positions
+					mapPosition[i][j] = 0;
+				}
 			}
 		}
 
 		int col = (int)(playerTank.getX() / (tg.ScreenWidth / 15f)); 		//columns
 		int row = (int) (playerTank.getY() / (tg.ScreenHeight / 15));		//rows
 
-		tankPosition[row][col] = 2;
+		mapPosition[row][col] = 2;
+		playerTank.gridPosition.row = row;
+		playerTank.gridPosition.column = col;
+
 
 		for (enemyTank tank : enemyTankArrayList){
 			col = (int)(tank.getX() / (tg.ScreenWidth / 15f)); 		//columns
 			row = (int) (tank.getY() / (tg.ScreenHeight / 15));		//rows
 
-			tankPosition[row][col] = 2;
-			tank.gridPositionRoW = row;
-			tank.gridPositionColumn = col;
+			mapPosition[row][col] = 2;
+			tank.gridPosition.row = row;
+			tank.gridPosition.column = col;
 		}
 
+	}
+	//calculate the path to base, using aStar
+	public void calculatePathTowardsBase(enemyTank tank){
+		tank.pathTowardsBase.clear();
+		int stoneMultiplyer = 10;
+		GridBlock destination;
+
+		if (tank.target == 0) {
+			destination = new GridBlock(14, 7);
+		}
+		else{
+			destination = new GridBlock(playerTank.gridPosition);
+		}
+
+		PriorityQueue <aStarBlock> queue = new PriorityQueue<aStarBlock>(1, (a,b) -> a.fValue - b.fValue );
+		tank.pathTowardsBase.add(tank.gridPosition);
+
+		while(true){
+			queue.clear();
+			GridBlock source = tank.pathTowardsBase.get(tank.pathTowardsBase.size() - 1);
+			//System.out.println("Source Row: " + source.row  + "Column : " + source.column);
+
+			int fValue;
+			if (source.column - 1 >= 0){
+
+				GridBlock tmp = new GridBlock(source.row , source.column-1);
+				boolean add = true;
+				for (GridBlock block : tank.pathTowardsBase){
+					if (GridBlock.equal(block, tmp)){
+						add = false;
+					}
+				}
+				if (add)
+					queue.add(new aStarBlock(tmp , (mapPosition[tmp.row][tmp.column]*stoneMultiplyer) + manhatanDist(tmp , destination) ));
+				if (GridBlock.equal(destination,tmp)){
+					tank.pathTowardsBase.add(tmp);
+					return;
+				}
+			}
+			if (source.column + 1 <= 14){
+				GridBlock tmp = new GridBlock(source.row , source.column+1);
+
+				boolean add = true;
+				for (GridBlock block : tank.pathTowardsBase){
+					if (GridBlock.equal(block, tmp)){
+						add = false;
+					}
+				}
+				if (add)
+					queue.add(new aStarBlock(tmp , (mapPosition[tmp.row][tmp.column]*stoneMultiplyer) + manhatanDist(tmp , destination)));
+				if (GridBlock.equal(destination,tmp)){
+					tank.pathTowardsBase.add(tmp);
+					return;
+				}
+			}
+			if (source.row - 1 >= 0){
+				GridBlock tmp = new GridBlock(source.row-1 , source.column);
+
+				boolean add = true;
+				for (GridBlock block : tank.pathTowardsBase){
+					if (GridBlock.equal(block, tmp)){
+						add = false;
+					}
+				}
+				if (add)
+					queue.add(new aStarBlock(tmp , (mapPosition[tmp.row][tmp.column]*stoneMultiplyer) + manhatanDist(tmp , destination)));
+				if (GridBlock.equal(destination,tmp)){
+					tank.pathTowardsBase.add(tmp);
+					return;
+				}
+			}
+			if (source.row + 1 <= 14){
+				GridBlock tmp = new GridBlock(source.row+1 , source.column);
+
+				boolean add = true;
+				for (GridBlock block : tank.pathTowardsBase){
+					if (GridBlock.equal(block, tmp)){
+						add = false;
+					}
+				}
+				if (add)
+					queue.add(new aStarBlock(tmp , (mapPosition[tmp.row][tmp.column]*stoneMultiplyer) + manhatanDist(tmp , destination)));
+				if (GridBlock.equal(destination,tmp)){
+					tank.pathTowardsBase.add(tmp);
+					return;
+				}
+			}
+			if (queue.size() != 0) {
+				tank.pathTowardsBase.add(queue.poll().gridPosition);
+			}
+			if (queue.size() == 0){
+				break;
+			}
+			//System.out.println("Row: " + queue.poll().gridPosition.row  + "Column : " + queue.poll().gridPosition.column);
+		}
 	}
 
 	public void checkBaseBullets(){
@@ -480,5 +600,23 @@ class PlayingState extends BasicGameState {
 			}
 		}
 	}
+
+	public int manhatanDist(GridBlock a1, GridBlock a2){
+		int rowDist = Math.abs(a1.row - a2.row);
+		int colDist = Math.abs(a1.column - a2.column);
+		return (rowDist + colDist);
+	}
+
+	public void updatePathForEnemies(int delta){
+		printCooldown += delta;
+		if ( printCooldown > 4000){
+			printCooldown = 0;
+
+			for (enemyTank enemy : enemyTankArrayList){
+				calculatePathTowardsBase(enemy);
+			}
+		}
+	}
+
 	
 }

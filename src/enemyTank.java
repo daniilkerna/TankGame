@@ -1,15 +1,19 @@
 import jig.Entity;
 import jig.*;
+
+import java.util.ArrayList;
 import java.util.Random;
 
 public class enemyTank extends Entity {
     public int numberOfBullets = 0;
 
-    private float velocity = 1.50f;
+    private float velocity = 1.0f;
     public final Vector[] directionShot = {new Vector(0,-3f),new Vector(-3f,0), new Vector(0,3f), new Vector(3f,0) };
-    public int gridPositionRoW;
-    public int gridPositionColumn;
 
+    public GridBlock gridPosition;
+
+
+    public ArrayList <GridBlock> pathTowardsBase = new ArrayList<>(1);
 
     private int lives;
 
@@ -17,6 +21,7 @@ public class enemyTank extends Entity {
     private int directionPicture = 0;
     private int countCooldown = 4000;
     private int bulletCooldown = 1000;
+    public int target;
 
 
     public enemyTank (final float x, final float y){
@@ -27,6 +32,11 @@ public class enemyTank extends Entity {
         addImageWithBoundingBox(ResourceManager.getImage(TankGame.Enemy_Tank_Up_RSC));
         scale(.45f);
 
+        gridPosition = new GridBlock(0,0);
+
+
+        this.target = getRandomInt(2);
+        System.out.println("target number: " + this.target);
 
     }
 
@@ -71,26 +81,29 @@ public class enemyTank extends Entity {
     }
 
     public void updateDirection(final int delta){
-        countCooldown += delta;
-        if (countCooldown > 3000 ) {
-            Random random = new Random();
-            this.directionFacing = random.nextInt(4);
+        if (pathTowardsBase.size() == 0){
+            return;
+        }
+        if (GridBlock.equal(gridPosition,pathTowardsBase.get(0) )){
+            pathTowardsBase.remove(0);
+            //System.out.println("Achievhed location row: " + gridPosition.row + "column : " + gridPosition.column);
+        }
+        if (pathTowardsBase.size() == 0){
+            return;
+        }
+        GridBlock destination = pathTowardsBase.get(0);
 
-            countCooldown = 0;
-
-            //check if in a corner
-            if (gridPositionColumn == 0 && gridPositionRoW == 0){
-                this.directionFacing = random.nextInt(2) + 2;
-            }
-            if (gridPositionColumn == 14 && gridPositionRoW == 0){
-                this.directionFacing = random.nextInt(2) + 1;
-            }
-            if (gridPositionColumn == 0 && gridPositionRoW == 14){
-                this.directionFacing = (random.nextInt(2) + 3) % 3;
-            }
-            if (gridPositionColumn == 14 && gridPositionRoW == 14){
-                this.directionFacing = random.nextInt(2) ;
-            }
+        if (destination.row > gridPosition.row){
+            directionFacing = 2;
+        }
+        else if (destination.row < gridPosition.row){
+            directionFacing = 0;
+        }
+        else if (destination.column > gridPosition.column){
+            directionFacing = 3;
+        }
+        else if (destination.column < gridPosition.column){
+            directionFacing = 1;
         }
 
     }
@@ -121,5 +134,13 @@ public class enemyTank extends Entity {
 
     public void decrementLives(){
         this.lives--;
+    }
+
+    //return random int [0,maximum]
+    public int getRandomInt(int maximum){
+        Random random = new Random();
+        int number = random.nextInt(maximum);
+
+        return number;
     }
 }
